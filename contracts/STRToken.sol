@@ -23,14 +23,15 @@ contract STRIMToken is ERC23StandardToken {
 
 
     bool public isFinalized; // switched to true in operational state    
-    uint256 public fundingStartBlock;
-    uint256 public fundingEndBlock;
-    uint256 public strFund = 0; // intial value reserved for STR team set to 0
-    uint256 public constant tokenExchangeRateMile1 = 3000; // 3000 STR tokens for the first phase
-    uint256 public constant tokenExchangeRateMile2 = 2000; // 2000 STR tokens for the second phase
-    uint256 public constant tokenExchangeRateMile3 = 1000; // 1000 STR tokens for the third phase   
-    uint256 public constant tokenCreationMinMile1 = 18000000 * 10 ** decimals; //minimum ammount of tokens to be created for the ICO to be succesfull
-    uint256 public constant tokenCreationMinMile2 = 28000000 * 10 ** decimals; //tokens to be created for the ICO for the second milestone    
+    uint256 public fundingStartPresaleBlock;
+	uint256 public fundingStartBlock;
+    uint256 public fundingEndBlock;    
+	uint256 public constant tokenExchangeRatePreSale = 10000; // 10000 STR tokens for 1 eth at the presale
+    uint256 public constant tokenExchangeRateMile1 = 3000; // 3000 STR tokens for the 1 eth at first phase
+    uint256 public constant tokenExchangeRateMile2 = 2000; // 2000 STR tokens for the 1 eth at second phase
+    uint256 public constant tokenExchangeRateMile3 = 1000; // 1000 STR tokens for the 1 eth at third phase   
+    uint256 public constant tokenCreationMinMile1 = 18 * (10**6) * 10**decimals; //minimum ammount of tokens to be created for the ICO to be succesfull
+    uint256 public constant tokenCreationMinMile2 = 28 * (10**6) * 10**decimals; //tokens to be created for the ICO for the second milestone    
 
 
     // events
@@ -41,18 +42,18 @@ contract STRIMToken is ERC23StandardToken {
 	
 	modifier onlyTeam() {
         //only do if call is from owner modifier
-        if (msg.sender != StrimTeam) throw;
+        require (msg.sender == StrimTeam);
         _;
     }
 	
 	modifier crowdsaleTransferLock() {       
-        if (isFinalized) throw;
+        require (!isFinalized);
         _;
     }
 
     modifier whenNotHalted() {
         // only do when not halted modifier
-        if (halted) throw;
+        require (!halted);
         _;
     }
 
@@ -67,9 +68,8 @@ contract STRIMToken is ERC23StandardToken {
         strFundDeposit = _strFundDeposit;
         fundingStartBlock = _fundingStartBlock;
         fundingEndBlock = _fundingEndBlock;
-        totalSupply = strFund;       
-		StrimTeam = msg.sender;
-        
+        totalSupply = 0;       
+		StrimTeam = msg.sender;        
     }
 	
 	//Fallback function when receiving Ether.
@@ -96,10 +96,10 @@ contract STRIMToken is ERC23StandardToken {
 
     //mint Tokens. Accepts ether and creates new STR tokens.
     function createTokens(address recipient) public payable whenNotHalted {
-        //if (isFinalized) throw;		
-        //if (block.number < fundingStartBlock) throw;
-        //if (block.number > fundingEndBlock) throw;
-        //if (msg.value == 0) throw;
+        require (!isFinalized);		
+        require (block.number >= fundingStartBlock);
+        require (block.number <= fundingEndBlock);
+        require (msg.value > 0);
         
 		uint256 tokens =  msg.value.mul(returnRate()); //decimals=18, so no need to adjust for unit      
 		balances[recipient] = balances[recipient].add(tokens);
@@ -112,7 +112,9 @@ contract STRIMToken is ERC23StandardToken {
 	
 	//Return rate of token against ether.
 	function returnRate( ) public constant returns(uint256) { 
-		if (totalSupply < tokenCreationMinMile1) {
+		if (block.number <(fundingStartBlock+10116)) {
+			return tokenExchangeRatePreSale;
+		} else if (totalSupply < tokenCreationMinMile1) {
             return tokenExchangeRateMile1;
         } else if (totalSupply < tokenCreationMinMile2){
 			return tokenExchangeRateMile2;
@@ -122,10 +124,10 @@ contract STRIMToken is ERC23StandardToken {
     }		
 
     function finalize() external {
-        if (isFinalized) throw;
-        if (msg.sender != ethFundDeposit) throw; // locks finalize to the ultimate ETH owner
-        if (totalSupply < tokenCreationMinMile1) throw; // have to sell minimum to move to operational
-        if (block.number <= fundingEndBlock) throw;
+        require (!isFinalized);
+        require (msg.sender == ethFundDeposit); // locks finalize to the ultimate ETH owner
+        require (totalSupply >= tokenCreationMinMile1); // have to sell minimum to move to operational
+        require (block.number <= fundingEndBlock);
 
         uint256 strVal = totalSupply.div (2);
         balances[strFundDeposit] = strVal; // Deposit Strim share
@@ -139,12 +141,13 @@ contract STRIMToken is ERC23StandardToken {
 
     // Allows contributors to recover their ether in the case of a failed funding campaign.
     function refund() external {
-        if (isFinalized) throw; // prevents refund if operational
-        if (block.number <= fundingEndBlock) throw; // prevents refund until sale period is over
-        if (totalSupply >= tokenCreationMinMile1) throw; // no refunds if we sold enough
-        if (msg.sender == strFundDeposit) throw; // Strim not entitled to a refund
-        uint256 strVal = balances[msg.sender];
-        if (strVal == 0) throw;
+        require (!isFinalized); // prevents refund if operational
+        require (block.number >= fundingEndBlock); // prevents refund until sale period is over
+        require (totalSupply < tokenCreationMinMile1); // no refunds if we sold enough
+        require (msg.sender != strFundDeposit); // Strim not entitled to a refund
+		require (strVal > 0);
+        
+		uint256 strVal = balances[msg.sender];       
         balances[msg.sender] = 0;
         totalSupply = totalSupply.sub(strVal); // extra safe
         uint256 ethVal = strVal / tokenExchangeRateMile1; // should be safe; considering it never reached the first milestone;
