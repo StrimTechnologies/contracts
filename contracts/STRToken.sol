@@ -119,7 +119,7 @@ contract STRIMToken is ERC23StandardToken {
 
     //Return rate of token against ether.
     function returnRate() public constant returns(uint256) {
-        if (block.number < fundingStartBlock.add(10116)) {
+        if (block.number < fundingStartBlock.add(5000)) {
             return tokenExchangeRatePreSale;
         } else if (totalSupply.sub(fundsFromPreSale) < tokenCreationMinMile1) {
             return tokenExchangeRateMile1;
@@ -146,7 +146,7 @@ contract STRIMToken is ERC23StandardToken {
     }
 
     function sendPreSaleETH() external onlyTeam{        
-        require(block.number > fundingStartBlock.add(10116)); //check if the presale passed the 2 day limit 
+        require(block.number > fundingStartBlock.add(5000)); //check if the presale passed the 2 day limit 
         require(fundsFromPreSale > 0); //make sure that there are funds to transfer
 
         uint256 ethFromPreSale = fundsFromPreSale.div(10000); //convert from tokens to ether
