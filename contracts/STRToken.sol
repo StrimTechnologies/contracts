@@ -44,7 +44,7 @@ contract STRIMToken is ERC23StandardToken {
     }
 
     modifier crowdsaleTransferLock() {
-        require(!isFinalized);
+        require(isFinalized);
         _;
     }
 
