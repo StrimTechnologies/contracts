@@ -133,15 +133,15 @@ contract STRIMToken is ERC23StandardToken {
     function finalize() external onlyTeam{
         require(!isFinalized);//check if already ran        
         require(totalSupply >= tokenCreationMinMile1); // have to sell minimum to move to operational
-        require(block.number <= fundingEndBlock || totalSupply >= tokenCreationMaxCap);//don't end befor ico period end or max cap reached
+        require(block.number > fundingEndBlock || totalSupply >= tokenCreationMaxCap);//don't end before ico period ends or max cap reached
 
         uint256 strVal = totalSupply.div(2);
         balances[strFundDeposit] = strVal; // deposit Strim share
         CreateSTR(msg.sender, strVal); // logs token creation
 
         // move to operational        
-        if (!ethFundDeposit.send(this.balance)) throw; // send the eth to Strim Team
-        if (!strFundDeposit.send(this.balance)) throw; // send the str to Strim Team
+        if (!ethFundDeposit.send(this.balance)) revert(); // send the eth to Strim Team
+        if (!strFundDeposit.send(this.balance)) revert(); // send the str to Strim Team
         isFinalized = true;
     }
 
@@ -152,14 +152,14 @@ contract STRIMToken is ERC23StandardToken {
         uint256 ethFromPreSale = fundsFromPreSale.div(10000); //convert from tokens to ether
         fundsFromPreSale = 0; //revert to initial state so it can't be reused 
 
-        if (!ethFundDeposit.send(ethFromPreSale)) throw; // send the eth raised for the pre sale to Strim Team
+        if (!ethFundDeposit.send(ethFromPreSale)) revert(); // send the eth raised for the pre sale to Strim Team
 
     }
 
     // Allows contributors to recover their ether in the case of a failed funding campaign.
     function refund() external {
         require(!isFinalized); // prevents refund if operational
-        require(block.number >= fundingEndBlock); // prevents refund until sale period is over
+        require(block.number > fundingEndBlock); // prevents refund until sale period is over
         require(totalSupply < tokenCreationMinMile1); // no refunds if we sold enough
         require(msg.sender != strFundDeposit); // Strim not entitled to a refund
         
@@ -169,7 +169,7 @@ contract STRIMToken is ERC23StandardToken {
             totalSupply = totalSupply.sub(strVal); // extra safe
        	    uint256 ethVal = strVal / exchangeRate[msg.sender]; // should be safe; considering it never reached the first milestone;
             LogRefund(msg.sender, ethVal); // log it 
-            if (!msg.sender.send(ethVal)) throw; // if you're using a contract; make sure it works with .send gas limits
+            if (!msg.sender.send(ethVal)) revert(); // if you're using a contract; make sure it works with .send gas limits
 		}
     }
 
