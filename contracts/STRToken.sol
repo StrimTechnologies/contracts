@@ -17,10 +17,9 @@ contract STRIMToken is ERC23StandardToken {
     string public version = "1.0";
     bool public halted; //Halt crowdsale in emergency
     bool public isFinalized; // switched to true in operational state
-	mapping(address => uint256) exchangeRate;
+    mapping(address => uint256) exchangeRate;
     uint256 public fundingStartBlock;
     uint256 public fundingEndBlock;
-    uint256 public constant tokenExchangeRatePreSale = 10000; // 10000 STR tokens for 1 eth at the presale
     uint256 public constant tokenExchangeRateMile1 = 3000; // 3000 STR tokens for the 1 eth at first phase
     uint256 public constant tokenExchangeRateMile2 = 2000; // 2000 STR tokens for the 1 eth at second phase
     uint256 public constant tokenExchangeRateMile3 = 1000; // 1000 STR tokens for the 1 eth at third phase   
