@@ -5,6 +5,9 @@ import "./ERC23StandardToken.sol";
 // Based in part on code by Open-Zeppelin: https://github.com/OpenZeppelin/zeppelin-solidity.git
 // Based in part on code by FirstBlood: https://github.com/Firstbloodio/token/blob/master/smart_contract/FirstBloodToken.sol
 
+// Based in part on code by Open-Zeppelin: https://github.com/OpenZeppelin/zeppelin-solidity.git
+// Based in part on code by FirstBlood: https://github.com/Firstbloodio/token/blob/master/smart_contract/FirstBloodToken.sol
+
 contract STRIMToken is ERC23StandardToken {
 
     // metadata
@@ -21,9 +24,9 @@ contract STRIMToken is ERC23StandardToken {
     uint256 public constant tokenExchangeRateMile1 = 3000; // 3000 STR tokens for the 1 eth at first phase
     uint256 public constant tokenExchangeRateMile2 = 2000; // 2000 STR tokens for the 1 eth at second phase
     uint256 public constant tokenExchangeRateMile3 = 1000; // 1000 STR tokens for the 1 eth at third phase   
-    uint256 public constant tokenCreationMinMile1 = 1000 * 10 ** decimals; //minimum ammount of tokens to be created for the ICO to be succesfull
-    uint256 public constant tokenCreationMinMile2 = 5000 * 10 ** decimals; //tokens to be created for the ICO for the second milestone 
-	uint256 public constant tokenCreationMaxCap = 20000 * 10 ** decimals; //max tokens to be created
+    uint256 public constant tokenCreationMinMile1 = 10 * (10 ** 6) * 10 ** decimals; //minimum ammount of tokens to be created for the ICO to be succesfull
+    uint256 public constant tokenCreationMinMile2 = 78 * (10 ** 6) * 10 ** decimals; //tokens to be created for the ICO for the second milestone 
+    uint256 public constant tokenCreationMaxCap = 168 * (10 ** 6) * 10 ** decimals; //max tokens to be created
 
     // contracts
     address public ethFundDeposit; // deposit address for ETH for Strim Team
