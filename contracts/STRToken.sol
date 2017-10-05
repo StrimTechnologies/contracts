@@ -26,7 +26,7 @@ contract STRIMToken is ERC23StandardToken {
     uint256 public constant tokenExchangeRateMile3 = 1000; // 1000 STR tokens for the 1 eth at third phase   
     uint256 public constant tokenCreationMinMile1 = 10 * (10 ** 6) * 10 ** decimals; //minimum ammount of tokens to be created for the ICO to be succesfull
     uint256 public constant tokenCreationMinMile2 = 78 * (10 ** 6) * 10 ** decimals; //tokens to be created for the ICO for the second milestone 
-    uint256 public constant tokenCreationMaxCap = 168 * (10 ** 6) * 10 ** decimals; //max tokens to be created
+    uint256 public constant tokenCreationMaxCap = 187 * (10 ** 6) * 10 ** decimals; //max tokens to be created
 
     // contracts
     address public ethFundDeposit; // deposit address for ETH for Strim Team
