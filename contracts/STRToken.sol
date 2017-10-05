@@ -11,8 +11,7 @@ contract STRIMToken is ERC23StandardToken {
     string public constant name = "STRIM Token";
     string public constant symbol = "STR";
     uint256 public constant decimals = 18;
-    uint256 public fundsFromPreSale;
-    string public version = "0.4";
+    string public version = "1.0";
     bool public halted; //Halt crowdsale in emergency
     bool public isFinalized; // switched to true in operational state
 	mapping(address => uint256) exchangeRate;
@@ -22,9 +21,9 @@ contract STRIMToken is ERC23StandardToken {
     uint256 public constant tokenExchangeRateMile1 = 3000; // 3000 STR tokens for the 1 eth at first phase
     uint256 public constant tokenExchangeRateMile2 = 2000; // 2000 STR tokens for the 1 eth at second phase
     uint256 public constant tokenExchangeRateMile3 = 1000; // 1000 STR tokens for the 1 eth at third phase   
-    uint256 public constant tokenCreationMinMile1 = 10 * (10 ** 6) * 10 ** decimals; //minimum ammount of tokens to be created for the ICO to be succesfull
-    uint256 public constant tokenCreationMinMile2 = 78 * (10 ** 6) * 10 ** decimals; //tokens to be created for the ICO for the second milestone 
-	uint256 public constant tokenCreationMaxCap = 168 * (10 ** 6) * 10 ** decimals; //max tokens to be created
+    uint256 public constant tokenCreationMinMile1 = 1000 * 10 ** decimals; //minimum ammount of tokens to be created for the ICO to be succesfull
+    uint256 public constant tokenCreationMinMile2 = 5000 * 10 ** decimals; //tokens to be created for the ICO for the second milestone 
+	uint256 public constant tokenCreationMaxCap = 20000 * 10 ** decimals; //max tokens to be created
 
     // contracts
     address public ethFundDeposit; // deposit address for ETH for Strim Team
@@ -68,7 +67,6 @@ contract STRIMToken is ERC23StandardToken {
         fundingEndBlock = _fundingEndBlock;
         totalSupply = 0;
         StrimTeam = msg.sender;
-        fundsFromPreSale = 0;
     }
 
     //Fallback function when receiving Ether.
@@ -103,13 +101,9 @@ contract STRIMToken is ERC23StandardToken {
 
         uint256 retRate = returnRate();
 
-        uint256 tokens = msg.value.mul(retRate); //decimals=18, so no need to adjust for unit   
-        if (retRate == 10000) {
-            fundsFromPreSale = fundsFromPreSale.add(tokens);
-			exchangeRate[recipient]=0;//presale ether is non refundable as it will be used for marketing during the ICO period
-        } else {
-		    exchangeRate[recipient]=retRate;
-		}
+        uint256 tokens = msg.value.mul(retRate); //decimals=18, so no need to adjust for unit  
+		exchangeRate[recipient]=retRate;
+		
         balances[recipient] = balances[recipient].add(tokens);//map tokens to the reciepient address	
         totalSupply = totalSupply.add(tokens);
 
@@ -119,11 +113,9 @@ contract STRIMToken is ERC23StandardToken {
 
     //Return rate of token against ether.
     function returnRate() public constant returns(uint256) {
-        if (block.number < fundingStartBlock.add(5000)) {
-            return tokenExchangeRatePreSale;
-        } else if (totalSupply.sub(fundsFromPreSale) < tokenCreationMinMile1) {
+        if (totalSupply < tokenCreationMinMile1) {
             return tokenExchangeRateMile1;
-        } else if (totalSupply.sub(fundsFromPreSale) < tokenCreationMinMile2) {
+        } else if (totalSupply < tokenCreationMinMile2) {
             return tokenExchangeRateMile2;
         } else {
             return tokenExchangeRateMile3;  
@@ -143,17 +135,6 @@ contract STRIMToken is ERC23StandardToken {
         if (!ethFundDeposit.send(this.balance)) revert(); // send the eth to Strim Team
         if (!strFundDeposit.send(this.balance)) revert(); // send the str to Strim Team
         isFinalized = true;
-    }
-
-    function sendPreSaleETH() external onlyTeam{        
-        require(block.number > fundingStartBlock.add(5000)); //check if the presale passed the 2 day limit 
-        require(fundsFromPreSale > 0); //make sure that there are funds to transfer
-
-        uint256 ethFromPreSale = fundsFromPreSale.div(10000); //convert from tokens to ether
-        fundsFromPreSale = 0; //revert to initial state so it can't be reused 
-
-        if (!ethFundDeposit.send(ethFromPreSale)) revert(); // send the eth raised for the pre sale to Strim Team
-
     }
 
     // Allows contributors to recover their ether in the case of a failed funding campaign.
